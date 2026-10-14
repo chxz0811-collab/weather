@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA – สภาพอากาศโลกแบบเรียลไทม์ & ระบบเตือนภัย</title>
+    
+    <!-- เรียกฐานฟอนต์สากลระดับพรีเมียม -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- เรียกชุดคำสั่งสร้างลูกโลก 3 มิติจากเซิร์ฟเวอร์ส่วนกลางมารอไว้ -->
+    <script src="https://unpkg.com"></script>
+    
+    <!-- 🔗 เชื่อมโยงเข้าหาไฟล์ตกแต่งสไตล์ล้ำสมัย (style.css) ที่อยู่ในระดับเดียวกัน -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- แถบเมนูด้านบนสุด (Top Bar) -->
+    <div class="top">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            AURA
+        </div>
+        <div class="tabs">
+            <button class="tab" aria-selected="true">แดชบอร์ด</button>
+            <button class="tab" aria-selected="false">แผนที่โลก</button>
+        </div>
+        <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="search-input" placeholder="ค้นหาเมืองหรือสถานีตรวจวัด...">
+        </div>
+    </div>
+
+    <!-- พื้นที่จัดวางแผงควบคุมและลูกโลก (Layout Grid) -->
+    <div class="grid">
+        <!-- ฝั่งซ้าย: แผงรายงานสภาพอากาศในพื้นที่ -->
+        <div class="col side">
+            <div class="panel">
+                <div class="loc-head">
+                    <div>
+                        <div class="loc-name" id="current-loc-name">ประเทศไทย</div>
+                        <div class="loc-sub" id="current-loc-sub">ASIA / BANGKOK</div>
+                    </div>
+                    <button class="pin-btn" id="btn-subscribe-alert">🚨 รับแจ้งเตือนภัย</button>
+                </div>
+                
+                <div class="now">
+                    <div class="big" id="main-temp">31°</div>
+                    <div class="ico" id="main-icon">🌤️</div>
+                </div>
+                <div class="cond" id="main-sky">สภาพอากาศ: มีเมฆบางส่วน</div>
+            </div>
+
+            <div class="panel">
+                <h3>📊 รายละเอียดสถานีตรวจวัด</h3>
+                <div class="stats">
+                    <div class="stat"><b id="stat-wind">12 km/h</b><span>กระแสลม</span></div>
+                    <div class="stat"><b id="stat-humid">68%</b><span>ความชื้น</span></div>
+                    <div class="stat"><b id="stat-rain">10%</b><span>โอกาสฝน</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ตรงกลาง: พื้นที่แสดงผลลูกโลก 3 มิติอัจฉริยะ -->
+        <div class="col center panel">
+            <h1>ศูนย์เครือข่ายวิเคราะห์สภาพอากาศโลก</h1>
+            <div class="live">
+                <div class="dot" id="live-dot"></div>
+                <span id="live-status">ระบบดักจับสัญญาณออนไลน์: ปกติ</span>
+            </div>
+            
+            <div class="stage">
+                <!-- บล็อกสำหรับวาดลูกโลก 3 มิติ -->
+                <div id="globe"></div>
+                
+                <!-- แผงควบคุมเลเยอร์ลูกโลกด้านล่าง -->
+                <div class="layers" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 5;">
+                    <button id="layer-temp" aria-pressed="true">อุณหภูมิ</button>
+                    <button id="layer-radar" aria-pressed="false">เรดาร์ฝน</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: รายชื่อสถานีและการแจ้งเตือนอุทกภัยฉุกเฉิน -->
+        <div class="col side">
+            <div class="panel" style="border-color: rgba(255, 93, 108, 0.4);">
+                <h3 style="color: var(--bad);">🚨 สัญญาณเตือนภัยพิบัติฉุกเฉิน</h3>
+                <div class="emergency-status-card" id="broadcast-center" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; font-size: 13px;">
+                    <p style="color: var(--muted); line-height: 1.5; margin: 0;">ไม่มีสัญญาณแจ้งเตือนอุทกภัยร้ายแรงในขณะนี้ ระบบกำลังเฝ้าระวังพื้นที่ลุ่มน้ำเสี่ยงภัยตลอด 24 ชั่วโมง</p>
+                </div>
+            </div>
+
+            <div class="panel world">
+                <h3>📍 รายชื่อสถานีตรวจวัดในเครือข่าย</h3>
+                <div class="wlist" id="stations-list">
+                    <!-- รายชื่อสถานีจะถูกเติมโดย JavaScript อัตโนมัติ -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔗 เรียกใช้ไฟล์คำนวณและควบคุมลูกโลกย่อยที่อยู่ในโฟลเดอร์ js ด้านใน -->
+    <script src="js/app.js"></script>
+</body>
+</html>
